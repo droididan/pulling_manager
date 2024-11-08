@@ -1,4 +1,4 @@
-[![pub package](https://img.shields.io/badge/version-0.1.0-blue)]
+![pub package](https://img.shields.io/badge/version-0.1.0-blue)
 [![likes](https://img.shields.io/pub/likes/pulling_manager?logo=dart)](https://pub.dev/packages/pulling_manager/score)
 [![popularity](https://img.shields.io/pub/popularity/pulling_manager?logo=dart)](https://pub.dev/packages/pulling_manager/score)
   
