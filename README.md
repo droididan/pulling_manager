@@ -1,4 +1,4 @@
-![pub package](https://img.shields.io/badge/version-0.1.1-blue)
+![pub package](https://img.shields.io/badge/version-0.1.3-blue)
 
   
 A flexible and battery-efficient solution for handling real-time data updates in Flutter applications.
@@ -17,7 +17,7 @@ Add the package to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  pulling_manager: ^0.1.2
+  pulling_manager: ^0.1.3
 ```
 
 ### Usage
@@ -30,6 +30,7 @@ Basic implementation:
     fetchData: () => repository.getData(),
     initialFrequency: PollingFrequency.low,
     immediateFirstFetch: true,
+    attachToLifecycle: true,
     lowFrequencyDuration: const Duration(seconds: 10), 
     mediumFrequencyDuration: const Duration(seconds: 5),
     highFrequencyDuration: const Duration(seconds: 2),
@@ -47,10 +48,6 @@ Basic implementation:
       ),
     );
 
-  // Handle app lifecycle 
-  appLifecycleSubject
-    .listen((isActive) => 
-      isActive ? pullManager.resume() : pullManager.pause());
 
   // Process data updates
   pullManager.dataStream
