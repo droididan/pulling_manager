@@ -17,7 +17,7 @@ Add the package to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  pulling_manager: ^1.0.0
+  pulling_manager: ^0.1.2
 ```
 
 ### Usage
