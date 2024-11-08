@@ -1,6 +1,6 @@
 name: pulling_manager
 description: "PullingManager"
-
+homepage: https://github.com/droididan/pulling_manager
 publish_to: "none"
 
 version: 0.1.0+1
