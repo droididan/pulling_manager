@@ -1,11 +1,10 @@
 ![pub package](https://img.shields.io/badge/version-0.1.3-blue)
 
-  
 A flexible and battery-efficient solution for handling real-time data updates in Flutter applications.
 
 ### Features
 
-- Customizable polling frequencies (low, medium, high)
+- Customizable Polling Frequencies
 - Battery-efficient with automatic lifecycle management
 - Smart request handling to prevent overlapping
 - Context-aware frequency adjustments
@@ -17,45 +16,9 @@ Add the package to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  pulling_manager: ^0.1.3
+  pulling_manager: ^0.1.4
 ```
-
-### Usage
-
-Basic implementation:
-
-```dart
-
-  final pullManager = PullingManager(
-    fetchData: () => repository.getData(),
-    initialFrequency: PollingFrequency.low,
-    immediateFirstFetch: true,
-    attachToLifecycle: true,
-    lowFrequencyDuration: const Duration(seconds: 10), 
-    mediumFrequencyDuration: const Duration(seconds: 5),
-    highFrequencyDuration: const Duration(seconds: 2),
-  );
-
-  // Listen to screen changes and adjust frequency
-  screenStateSubject
-    .listen(
-      (screen) => pullManager.setFrequency(
-        screen.when(
-          dashboard: () => PollingFrequency.low,    
-          details: () => PollingFrequency.high,     
-          settings: () => PollingFrequency.medium,  
-        ),
-      ),
-    );
-
-
-  // Process data updates
-  pullManager.dataStream
-    .listen((result) {
-        // do something with the result
-    });
-
-```
+ 
 
 ### Why PullingManager?
 
@@ -81,6 +44,101 @@ PullingManager(
   highFrequencyDuration: Duration,      // Interval for high frequency
 )
 ```
+
+# Customizable Polling Frequencies
+
+## Explanation
+
+Customizable polling frequencies allow you to define how often specific tasks (like data refreshes or updates) occur by providing a list of predefined time intervals. This method ensures flexibility and efficiency, as different parts of an application can operate with varying refresh rates based on their needs.
+
+### Key Concepts:
+
+1. **Pass a List of Frequencies**: Provide a list of intervals (in seconds, milliseconds, etc.) to specify how often a task should execute.
+2. **Context-Specific Updates**: Tie each frequency to a particular application state, page, or condition for dynamic control.
+
+---
+
+## Example Usage
+
+Here is an example of how to use the `PullingManager` class in a Dart application:
+
+```dart
+void main() {
+  // Create an instance of PullingManager
+  final pullingManager = PullingManager<String>(
+    fetchData: () async {
+      // Simulate a network call or data fetch
+      print("Fetching data...");
+      await Future.delayed(Duration(seconds: 1));
+      return "Data fetched successfully";
+    },
+    customDurations: [
+      Duration(seconds: 15),  
+      Duration(seconds: 10),  
+      Duration(seconds: 5),   
+      Duration(seconds: 2),   
+      Duration(seconds: 1),  
+    ],
+    initialFrequency: PollingFrequency.medium,
+    immediateFirstFetch: true,
+    attachToLifecycle: true,
+  );
+
+  // Listen to the data stream
+  pullingManager.dataStream.listen((data) {
+    print("Received: $data");
+  });
+
+  // Change polling frequency
+  pullingManager.setFrequency(PollingFrequency.high);
+
+  // Trigger a manual fetch
+  pullingManager.triggerManualFetch();
+
+  // Pause and resume polling based on user interaction or app state
+  pullingManager.pause();
+  Future.delayed(Duration(seconds: 5), () {
+    pullingManager.resume();
+  });
+
+  // Dispose the manager when no longer needed
+  Future.delayed(Duration(seconds: 30), () {
+    pullingManager.dispose();
+  });
+}
+```
+
+### Explanation:
+
+- **`fetchData`**: A function that performs the actual data fetching.
+- **`customDurations`**: Override the default durations for polling frequencies.
+- **`setFrequency`**: Adjust the polling frequency dynamically.
+- **`pause`/`resume`**: Temporarily halt and restart polling.
+- **`dispose`**: Clean up resources when polling is no longer required.
+
+---
+
+## Benefits
+
+- **Efficiency**: Reduces unnecessary system resource usage by avoiding constant updates.
+- **Flexibility**: Allows different components of the app to operate independently with appropriate refresh rates.
+- **Scalability**: Easy to modify or expand polling frequencies as the application evolves.
+
+---
+
+## Use Cases
+
+1. **Real-Time Dashboards**: Frequently update critical components (e.g., every second) while less critical ones refresh periodically.
+2. **IoT Applications**: Poll sensors at different rates depending on their importance or activity.
+3. **Data-Heavy Applications**: Optimize network calls by adjusting frequencies dynamically based on user interaction.
+
+---
+
+## Implementation Tips
+
+- Use a **Polling Manager** to centralize and manage polling logic.
+- Store frequencies in a configuration file for easy updates.
+- Dynamically adjust polling rates based on user activity or system performance.
 
 ### Contributing
 
