@@ -2,21 +2,20 @@ import 'dart:async';
 import 'package:flutter/widgets.dart';
 import 'package:rxdart/rxdart.dart';
 
-enum PollingFrequency { low, medium, high }
+enum PollingFrequency { veryLow, low, medium, high, veryHigh }
 
-/// [PullingManager] is a class that manages the frequency of data fetching.
-/// [T] is the type of data fetched.
-/// The manager can be paused and resumed.
-/// It can also be attached to the app lifecycle to pause and resume fetching
-/// when the app goes to background and returns to foreground.
-/// The manager can be used to fetch data at different frequencies.
-/// The manager can also be used to trigger manual data fetches.
-/// The manager can be used to fetch data immediately after initialization.
 class PullingManager<T> with WidgetsBindingObserver {
-  // Duration for each frequency level
-  final Duration lowFrequencyDuration;
-  final Duration mediumFrequencyDuration;
-  final Duration highFrequencyDuration;
+  // Default durations for each frequency level
+  static const _defaultDurations = [
+    Duration(seconds: 10),
+    Duration(seconds: 5),
+    Duration(seconds: 3),
+    Duration(seconds: 2),
+    Duration(seconds: 1),
+  ];
+
+  // Dynamic durations based on user input
+  final List<Duration> _durations;
 
   // Subjects
   final _pollingFrequencySubject = BehaviorSubject<PollingFrequency>();
@@ -25,8 +24,6 @@ class PullingManager<T> with WidgetsBindingObserver {
 
   // Stream of fetched data
   late final Stream<T> dataStream;
-
-  late final StreamSubscription<T> _dataSubscription;
 
   final Future<T> Function() _fetchData;
 
@@ -38,23 +35,21 @@ class PullingManager<T> with WidgetsBindingObserver {
 
   PullingManager({
     required Future<T> Function() fetchData,
-    required this.lowFrequencyDuration,
-    required this.mediumFrequencyDuration,
-    required this.highFrequencyDuration,
-    PollingFrequency initialFrequency = PollingFrequency.low,
+    List<Duration>? customDurations,
+    PollingFrequency initialFrequency = PollingFrequency.medium,
     bool immediateFirstFetch = true,
     bool attachToLifecycle = true,
   })  : _fetchData = fetchData,
         _immediateFirstFetch = immediateFirstFetch,
-        _attachToLifecycle = attachToLifecycle {
+        _attachToLifecycle = attachToLifecycle,
+        _durations = _configureDurations(customDurations) {
     if (_attachToLifecycle) {
       WidgetsBinding.instance.addObserver(this);
     }
 
     final pollingStream = _pollingFrequencySubject.switchMap((frequency) {
-      final effectiveFrequency = (_immediateFirstFetch && !_firstFetchCompleted)
-          ? PollingFrequency.high
-          : frequency;
+      final effectiveFrequency =
+          (_immediateFirstFetch && !_firstFetchCompleted) ? PollingFrequency.veryHigh : frequency;
 
       final duration = _getDurationForFrequency(effectiveFrequency);
 
@@ -86,15 +81,20 @@ class PullingManager<T> with WidgetsBindingObserver {
     }
   }
 
-  Duration _getDurationForFrequency(PollingFrequency frequency) {
-    switch (frequency) {
-      case PollingFrequency.low:
-        return lowFrequencyDuration;
-      case PollingFrequency.medium:
-        return mediumFrequencyDuration;
-      case PollingFrequency.high:
-        return highFrequencyDuration;
+  static List<Duration> _configureDurations(List<Duration>? customDurations) {
+    if (customDurations == null || customDurations.isEmpty) {
+      return _defaultDurations;
     }
+
+    final maxDurations = _defaultDurations.length;
+    return List<Duration>.generate(
+      maxDurations,
+      (index) => customDurations.length > index ? customDurations[index] : _defaultDurations[index],
+    );
+  }
+
+  Duration _getDurationForFrequency(PollingFrequency frequency) {
+    return _durations[frequency.index];
   }
 
   void setFrequency(PollingFrequency frequency) {
@@ -115,14 +115,11 @@ class PullingManager<T> with WidgetsBindingObserver {
     _pauseResumeSubject.add(_isPaused);
   }
 
-  /// Lifecycle management: pause polling when app goes to background,
-  /// resume polling when app returns to foreground
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (!_attachToLifecycle) return;
 
-    if (state == AppLifecycleState.paused ||
-        state == AppLifecycleState.inactive) {
+    if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
       pause();
     } else if (state == AppLifecycleState.resumed) {
       resume();
@@ -136,6 +133,5 @@ class PullingManager<T> with WidgetsBindingObserver {
     _pollingFrequencySubject.close();
     _dataFetchSubject.close();
     _pauseResumeSubject.close();
-    _dataSubscription.cancel();
   }
 }

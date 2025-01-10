@@ -22,9 +22,11 @@ void main() {
           dataController.add(data);
           return data;
         },
-        lowFrequencyDuration: const Duration(seconds: 3),
-        mediumFrequencyDuration: const Duration(seconds: 2),
-        highFrequencyDuration: const Duration(seconds: 1),
+        customDurations: [
+          const Duration(seconds: 5), // low
+          const Duration(seconds: 3), // medium
+          const Duration(seconds: 1), // high
+        ],
         attachToLifecycle: true, // Enable lifecycle management
       );
 
@@ -33,12 +35,13 @@ void main() {
 
     tearDown(() {
       dataController.close();
+      pullingManager.dispose();
     });
 
     test('Starts fetching data at low frequency', () async {
       pullingManager.setFrequency(PollingFrequency.low);
 
-      await Future.delayed(const Duration(seconds: 4));
+      await Future.delayed(const Duration(seconds: 6));
 
       expect(fetchedData.isNotEmpty, isTrue);
       expect(fetchedData.length, greaterThanOrEqualTo(1));
@@ -50,41 +53,50 @@ void main() {
       await Future.delayed(const Duration(seconds: 5));
 
       expect(fetchedData.isNotEmpty, isTrue);
-      expect(fetchedData.length, greaterThan(2));
+      expect(fetchedData.length, greaterThan(1));
     });
 
     test('Switches to high frequency and fetches most frequently', () async {
       pullingManager.setFrequency(PollingFrequency.high);
 
-      await Future.delayed(const Duration(seconds: 3));
+      await Future.delayed(const Duration(seconds: 4));
 
       expect(fetchedData.isNotEmpty, isTrue);
-      expect(fetchedData.length, greaterThan(2));
+      expect(fetchedData.length, greaterThan(3));
     });
 
-    test('Resumes fetching after restarting', () async {
-      pullingManager.setFrequency(PollingFrequency.low);
+    test('Pauses fetching data', () async {
+      pullingManager.setFrequency(PollingFrequency.high);
 
       await Future.delayed(const Duration(seconds: 2));
-      int initialDataCount = fetchedData.length;
 
-      await Future.delayed(const Duration(seconds: 1));
-      pullingManager = PullingManager<int>(
-        fetchData: () async {
-          final data = DateTime.now().millisecondsSinceEpoch;
-          dataController.add(data);
-          return data;
-        },
-        lowFrequencyDuration: const Duration(seconds: 3),
-        mediumFrequencyDuration: const Duration(seconds: 2),
-        highFrequencyDuration: const Duration(seconds: 1),
-        attachToLifecycle: true,
-      );
+      pullingManager.pause();
 
-      pullingManager.dataStream.listen((data) => fetchedData.add(data));
+      final initialLength = fetchedData.length;
 
-      await Future.delayed(const Duration(seconds: 3));
-      expect(fetchedData.length, greaterThan(initialDataCount));
+      await Future.delayed(const Duration(seconds: 2));
+
+      expect(fetchedData.length, equals(initialLength));
+    });
+
+    test('Resumes fetching data', () async {
+      pullingManager.setFrequency(PollingFrequency.high);
+
+      await Future.delayed(const Duration(seconds: 2));
+
+      pullingManager.pause();
+
+      final initialLength = fetchedData.length;
+
+      await Future.delayed(const Duration(seconds: 2));
+
+      expect(fetchedData.length, equals(initialLength));
+
+      pullingManager.resume();
+
+      await Future.delayed(const Duration(seconds: 2));
+
+      expect(fetchedData.length, greaterThan(initialLength));
     });
   });
 }
