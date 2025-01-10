@@ -1,4 +1,4 @@
-![pub package](https://img.shields.io/badge/version-0.1.5-blue)
+![pub package](https://img.shields.io/badge/version-0.1.6-blue)
 
 A flexible and battery-efficient solution for handling real-time data updates in Flutter applications.
 
@@ -16,7 +16,7 @@ Add the package to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  pulling_manager: ^0.1.5
+  pulling_manager: ^0.1.6
 ```
  
 
