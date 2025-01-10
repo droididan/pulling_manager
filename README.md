@@ -1,4 +1,4 @@
-![pub package](https://img.shields.io/badge/version-0.1.3-blue)
+![pub package](https://img.shields.io/badge/version-0.1.5-blue)
 
 A flexible and battery-efficient solution for handling real-time data updates in Flutter applications.
 
