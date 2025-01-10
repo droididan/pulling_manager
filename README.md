@@ -29,22 +29,6 @@ PullingManager was built to solve real-world needs in production apps. It provid
 - Clean API: Simple to implement and maintain
 - Built on RxDart: Leverages powerful reactive programming concepts
 
-### Configuration
-
-PullingManager can be customized with:
-
-```dart
-PullingManager(
-  attachToLifecycle: true,              // Attach to lifecycle to pause in background, resume in foreground.
-  fetchData: () => Future<T>,           // Your data fetch function
-  initialFrequency: PollingFrequency,   // Starting frequency
-  immediateFirstFetch: bool,            // Fetch immediately on start
-  lowFrequencyDuration: Duration,       // Interval for low frequency
-  mediumFrequencyDuration: Duration,    // Interval for medium frequency
-  highFrequencyDuration: Duration,      // Interval for high frequency
-)
-```
-
 # Customizable Polling Frequencies
 
 ## Explanation
